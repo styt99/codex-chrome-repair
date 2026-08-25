@@ -1,0 +1,21 @@
+{
+  "name": "chrome-xiufu-marketplace",
+  "interface": {
+    "displayName": "Chrome Xiufu"
+  },
+  "plugins": [
+    {
+      "name": "codex-chrome-repair",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-chrome-repair"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
+
