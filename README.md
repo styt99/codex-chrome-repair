@@ -1,5 +1,7 @@
 # Codex Chrome Repair Plugin
 
+[English](README.md) | [简体中文](plugins/codex-chrome-repair/README.zh-CN.md)
+
 This repository follows the current Codex plugin layout used by the public `openai/plugins` repository.
 
 ```text
