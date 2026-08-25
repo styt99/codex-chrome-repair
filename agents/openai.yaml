@@ -1,0 +1,5 @@
+interface:
+  display_name: "Chrome xiufu"
+  short_description: "Diagnose and repair Codex Chrome plugin takeover failures."
+  default_prompt: "Use $chrome-xiufu to diagnose and repair Codex Chrome plugin control problems on Windows."
+
