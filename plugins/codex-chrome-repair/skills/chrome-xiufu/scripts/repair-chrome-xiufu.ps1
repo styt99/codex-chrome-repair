@@ -434,7 +434,28 @@ if ($runtimeTrustedEntries.Count -eq 0) {
   }
 }
 
-$targets = @($targets | Select-Object -Unique)
+# `latest` is a junction to the active version directory. The same physical
+# Browser service can therefore enter the plan twice under different strings,
+# causing prefix-based replacements to run twice. Normalize that known alias
+# before building the immutable patch plan.
+$normalizedTargets = [ordered]@{}
+$browserLatestPrefix = $browserLatestPath.TrimEnd("\") + "\"
+$browserVersionedPrefix = if ([string]::IsNullOrWhiteSpace($activeVersion)) {
+  $null
+} else {
+  (Join-Path $browserCacheRoot $activeVersion).TrimEnd("\") + "\"
+}
+foreach ($target in @($targets | Select-Object -Unique)) {
+  $normalizedTarget = $target
+  if ($browserVersionedPrefix -and $target.StartsWith($browserLatestPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+    $normalizedTarget = $browserVersionedPrefix + $target.Substring($browserLatestPrefix.Length)
+  }
+  $targetKey = [IO.Path]::GetFullPath($normalizedTarget).ToLowerInvariant()
+  if (-not $normalizedTargets.Contains($targetKey)) {
+    $normalizedTargets[$targetKey] = $normalizedTarget
+  }
+}
+$targets = @($normalizedTargets.Values)
 
 $ariaOld1 = 'return i?o.incrementalAriaSnapshot(i,{mode:"ai"}):{full:"",iframeDepths:{},iframeRefs:[]}'
 $ariaNew1 = 'return i?(typeof o.incrementalAriaSnapshot==="function"?o.incrementalAriaSnapshot(i,{mode:"ai"}):{full:o._renderAriaSnapshot(i,{mode:"ai"}),iframeDepths:{},iframeRefs:[]}):{full:"",iframeDepths:{},iframeRefs:[]}'
