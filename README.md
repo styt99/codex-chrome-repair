@@ -1,69 +1,90 @@
-# Chrome Xiufu
+# Codex Chrome Repair Plugin
 
-`chrome-xiufu` is a Windows repair skill for Codex Desktop's `chrome@openai-bundled` control path. It is intended for cases where Codex can connect to Chrome but navigation, DOM snapshots, screenshots, scrolling, or history navigation are unreliable.
+This repository follows the current Codex plugin layout used by the public `openai/plugins` repository.
 
-## What It Does
-
-- Inspects the complete active Chrome and Browser plugin layout before changing anything.
-- Resolves the active plugin version from `latest/.codex-plugin/plugin.json`; it never pins a version.
-- Checks cache, marketplace, Browser service, native-host, extension, and runtime trusted-service state.
-- Applies only exact, known compatibility patches when the corresponding broken pattern is present.
-- Covers ARIA snapshot fallback, site-status timeouts, cached CDP expressions, focus/OOPIF waits, navigation timeouts, mouse-wheel scrolling, history navigation, and read-only response-meta latency.
-- Verifies every write by reading the file back and runs `node --check` against every patched target.
-- Requires a real Chrome smoke/full ACK before reporting complete recovery.
-
-## Safety Boundaries
-
-This is a patch-only repair workflow. It does not install, add, synchronize, replace, downgrade, or pin a plugin version. It does not modify Chrome profiles, cookies, passwords, user data, or `C:\Program Files\WindowsApps`.
-
-If the active manifest is missing, malformed, or mismatched with a candidate copy, the version gate stops without writing. If runtime trusted-service configuration is absent or stale, the skill reports that state and uses only explicitly version-gated fallback candidates; it never guesses by directory timestamp.
-
-## Use
-
-Run the normal check-then-repair flow from PowerShell:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.codex\skills\chrome-xiufu\scripts\repair-chrome-xiufu.ps1"
+```text
+.agents/plugins/marketplace.json
+plugins/codex-chrome-repair/
+├── .codex-plugin/plugin.json
+├── skills/chrome-xiufu/
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   └── scripts/repair-chrome-xiufu.ps1
+├── README.md
+└── README.zh-CN.md
 ```
 
-Run inspection only:
+## Install In Codex
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.codex\skills\chrome-xiufu\scripts\repair-chrome-xiufu.ps1" -VerifyOnly
+### Codex App
+
+Open **Plugins** in the Codex sidebar, add the GitHub marketplace/repository, then install **Codex Chrome Repair**. Restart Codex after installation or an update so skill metadata is reloaded.
+
+### Codex CLI
+
+Use the plugin search interface:
+
+```text
+/plugins
 ```
 
-Use `-Detailed` only when a failure needs file-level diagnostics. The default output intentionally omits cache paths, hashes, duplicate copies, and backup paths.
+Search for `codex-chrome-repair` and select **Install Plugin**. The skill inside the plugin remains addressable as `$chrome-xiufu` for compatibility with the existing local workflow. For a local checkout, add the repository marketplace explicitly and then install the plugin named in its marketplace manifest:
 
-## Required Workflow
+```powershell
+codex plugin marketplace add "C:\path\to\shiny-happiness"
+codex plugin install codex-chrome-repair@chrome-xiufu-marketplace
+```
 
-1. Inspect the environment, plugin manifests, extension, native host, all matching cache/marketplace copies, and runtime trusted-service configuration.
-2. Classify the symptom as a capability failure, slow-but-successful operation, cold-start cost, or target-site transient.
-3. Research official OpenAI/Codex documentation and public GitHub sources only when no tracked pattern explains the issue, the symptom is intermittent, upstream code changed shape, or a more stable official mechanism may exist.
-4. Apply exact matching patches only after the full diagnosis and version gate pass.
-5. Reset the Node runtime or extension host after any write.
-6. Run the real Chrome smoke/full ACK in separate operations and record timings, evidence, and before/after comparisons.
+The explicit marketplace command is for this repository's `.agents/plugins/marketplace.json`; it is not needed for the default personal marketplace.
 
-## ACK Gate
+### Manual Installation
 
-The report progresses through:
+For a manual fallback, copy `plugins/codex-chrome-repair/skills/chrome-xiufu` to:
 
-`PATCH_READY -> RECONNECT_REQUIRED -> ACK_REQUIRED -> ACK_PASSED`
+```text
+%USERPROFILE%\.codex\skills\chrome-xiufu
+```
 
-Static inspection is not a live ACK. `ACK_PASSED` requires successful navigation, page reads, DOM snapshot, screenshot, scrolling, interaction, and repeated history back/forward checks with correct page evidence. Missing live evidence must remain `ACK_REQUIRED`; it must never be fabricated.
+The target folder must contain `SKILL.md` directly. Do not copy `.bak` files, plugin caches, or Chrome profile data. Restart Codex afterward.
 
-## Package Contents
+## Update and Verify
 
-- `SKILL.md`: full operating procedure and diagnostic rules.
-- `scripts/repair-chrome-xiufu.ps1`: deterministic inspection, patching, version gating, and syntax verification.
-- `agents/openai.yaml`: Codex skill metadata.
-- `README.md`: English overview.
-- `README.zh-CN.md`: Chinese overview.
+After an update, run `repair-chrome-xiufu.ps1 -VerifyOnly`, then reconnect Chrome and run the real smoke/full ACK. The plugin package version (`0.1.0`) identifies this published bundle; it does not pin the official Chrome plugin version. The repair skill reads the active Chrome version dynamically from `latest/.codex-plugin/plugin.json`.
 
-## Known Baseline
+## Verified Before/After Data
 
-The verified history-navigation repair reduced `goBack` and `goForward` from roughly ten seconds per call to sub-100 ms on the Selenium test pages. Other tracked patches have no universal pre-repair timing; reports must say `no pre-repair data` instead of estimating.
+The following values are from real Chrome ACK runs on the Selenium test pages.
+Only history navigation has a measured pre-repair baseline; other operations
+are explicitly marked as having no pre-repair data.
 
-## Rollback
+| Operation | Before | After | Status | Data source |
+| --- | ---: | ---: | --- | --- |
+| Cold navigation | no pre-repair data | 6,284 ms | Pass | Chrome ACK recheck |
+| Warm navigation | no pre-repair data | 6,536 ms | Pass | Chrome ACK recheck |
+| URL / title | no pre-repair data | 3 / 3 ms | Pass | Chrome ACK recheck |
+| Evaluate | no pre-repair data | 36 ms | Pass | Chrome ACK recheck |
+| DOM snapshot | no pre-repair data | 109 ms | Pass | Chrome ACK recheck |
+| Screenshot | no pre-repair data | 97 ms, 65,970 bytes | Pass | Chrome ACK recheck |
+| Scroll | no pre-repair data | 17 ms | Pass | Chrome ACK recheck |
+| Fill / keypress / click | no pre-repair data | 52 / 28 / 428 ms | Pass | Form ACK recheck |
+| Submitted DOM | no pre-repair data | 37 ms | Pass | Form ACK recheck |
+| `goBack` | mean 10,048.7 ms | 38–59 ms, 3/3 | Pass, about 99.5% lower | Historical baseline + ACK recheck |
+| `goForward` | mean 10,048.4 ms | 37–44 ms, 3/3 | Pass, about 99.6% lower | Historical baseline + ACK recheck |
 
-During an active repair, the script creates a timestamped backup beside each file it changes. Restore the matching backup to its original path, then restart Codex/extension-host and rerun the smoke test. Backups are operational artifacts, not part of this published package.
+Cold and warm navigation remain multi-second operations because connection and
+page attachment happen during navigation. They are slow-but-successful, not a
+plugin failure. History operations are the measured latency fix: every attempt
+landed on the expected URL.
+
+## Safety
+
+This plugin never installs, downgrades, synchronizes, or replaces the official Chrome plugin. It does not modify Chrome profiles, credentials, user data, or `C:\Program Files\WindowsApps`. It patches only exact known-broken patterns after diagnosis and version gating.
+
+## References
+
+- [OpenAI plugins](https://github.com/openai/plugins)
+- [OpenAI skills](https://github.com/openai/skills)
+- [Awesome Codex Skills](https://github.com/composio-community/awesome-codex-skills)
+- [Codex Skills documentation](https://developers.openai.com/codex/skills)
+- [Build Codex plugins](https://developers.openai.com/codex/plugins/build)
 
