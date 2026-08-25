@@ -163,8 +163,8 @@ After repair, reset or reconnect the Node REPL and run the supported Chrome setu
 Run each browser operation below in a separate `js` call. In some current Chrome-plugin versions, navigation, DOM reads, and screenshots can each take roughly 20–25 seconds even when they succeed. Combining the sequence in one call can exceed the default call limit, reset the session, and falsely look like a DOM or screenshot failure. Record the timing and evidence for each separate operation.
 
 ```js
-await browser.nameSession("Chrome xiufu smoke test");
-const tab = await browser.tabs.new();
+await chrome.nameSession("Chrome xiufu smoke test");
+const tab = await chrome.tabs.new();
 ```
 
 ```js
@@ -191,7 +191,7 @@ await tab.title();
 ```
 
 ```js
-await tab.playwright.evaluate('() => ({href: location.href, title: document.title, h1: document.querySelector("h1")?.textContent || null})', undefined, { timeoutMs: 5000 });
+await tab.playwright.evaluate(() => ({href: location.href, title: document.title, h1: document.querySelector("h1")?.textContent || null}), undefined, { timeoutMs: 5000 });
 ```
 
 ```js
@@ -207,7 +207,7 @@ await tab.cua.scroll({ x: 1000, y: 600, scrollY: 600, scrollX: 0 });
 ```
 
 ```js
-await browser.tabs.finalize({ keep: [] });
+await tab.close();
 ```
 
 Expected signals:
