@@ -1,13 +1,13 @@
 {
   "name": "codex-chrome-repair",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Diagnose and repair Codex Desktop Chrome plugin takeover failures on Windows with dynamic version gating and real Chrome ACK verification.",
   "author": {
     "name": "styt99",
     "url": "https://github.com/styt99"
   },
-  "homepage": "https://github.com/styt99/shiny-happiness",
-  "repository": "https://github.com/styt99/shiny-happiness",
+  "homepage": "https://github.com/styt99/codex-chrome-repair",
+  "repository": "https://github.com/styt99/codex-chrome-repair",
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Chrome Repair",
@@ -17,7 +17,8 @@
     "category": "Developer Tools",
     "capabilities": ["Read", "Write", "Interactive"],
     "defaultPrompt": ["Use $chrome-xiufu to diagnose and repair Codex Chrome plugin control problems on Windows."],
-    "websiteURL": "https://github.com/styt99/shiny-happiness"
+    "websiteURL": "https://github.com/styt99/codex-chrome-repair"
   }
 }
+
 
